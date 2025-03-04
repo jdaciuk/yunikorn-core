@@ -137,6 +137,9 @@ func (p *Preemptor) initWorkingState() {
 	if p.nodeAvailableMap != nil {
 		return
 	}
+	log.Log(log.SchedPreemption).Info("Calling initWorkingState",
+		zap.String("ApplicationID", p.application.ApplicationID),
+	)
 
 	// ensure queue snapshots are populated
 	p.initQueueSnapshots()
@@ -160,6 +163,10 @@ func (p *Preemptor) initWorkingState() {
 
 	// walk node iterator and track available resources per node
 	p.iterator.ForEachNode(func(node *Node) bool {
+		log.Log(log.SchedPreemption).Info("p.iterator.ForEachNode walking over node",
+			zap.String("ApplicationID", p.application.ApplicationID),
+			zap.String("NodeID", node.NodeID),
+		)
 		if !node.IsSchedulable() || (node.IsReserved() && !node.isReservedForApp(reservationKey(nil, p.application, p.ask))) {
 			// node is not available, remove any potential victims from consideration
 			delete(allocationsByNode, node.NodeID)
