@@ -518,6 +518,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 func (p *Preemptor) TryPreemption() (*Allocation, bool) {
 	// validate that sufficient capacity can be freed
 	if !p.checkPreemptionQueueGuarantees() {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption because p.checkPreemptionQueueGuarantees()=false", zap.String("ApplicationID", p.application.ApplicationID))
 		return nil, false
 	}
 
@@ -528,6 +529,7 @@ func (p *Preemptor) TryPreemption() (*Allocation, bool) {
 	nodeID, victims, ok := p.tryNodes()
 	if !ok {
 		// no preemption possible
+		log.Log(log.SchedPreemption).Info("Not triggering preemption because p.tryNodes returns !ok", zap.String("ApplicationID", p.application.ApplicationID))
 		return nil, false
 	}
 
@@ -535,10 +537,12 @@ func (p *Preemptor) TryPreemption() (*Allocation, bool) {
 	extraVictims, ok := p.calculateAdditionalVictims(victims)
 	if !ok {
 		// not enough resources were preempted
+		log.Log(log.SchedPreemption).Info("Not triggering preemption because p.calculateAdditionalVictims(victims) returns !ok", zap.String("ApplicationID", p.application.ApplicationID))
 		return nil, false
 	}
 	victims = append(victims, extraVictims...)
 	if len(victims) == 0 {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption because len(victims) == 0", zap.String("ApplicationID", p.application.ApplicationID))
 		return nil, false
 	}
 
