@@ -19,6 +19,7 @@
 package objects
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -483,6 +484,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 	predicateChecks := make([]*si.PreemptionPredicatesArgs, 0)
 	victimsByNode := make(map[string][]*Allocation)
 	for nodeID, nodeAvailable := range p.nodeAvailableMap {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: tryNodes considering a node", zap.String("ApplicationID", p.application.ApplicationID), zap.String("NodeID", nodeID))
 		allocations, ok := p.allocationsByNode[nodeID]
 		if !ok {
 			// no allocations present, but node may still be available for scheduling
@@ -490,6 +492,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 		}
 		// identify which victims and in which order should be tried
 		if idx, victims := p.calculateVictimsByNode(nodeAvailable, allocations); victims != nil {
+			log.Log(log.SchedPreemption).Info("Not triggering preemption: tryNodes found potential victims", zap.String("ApplicationID", p.application.ApplicationID), zap.String("NodeID", nodeID), zap.Int("VictimCount", len(victims)))
 			victimsByNode[nodeID] = victims
 			keys := make([]string, 0)
 			for _, victim := range victims {
@@ -507,6 +510,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 		}
 	}
 	// call predicates to evaluate each node
+	log.Log(log.SchedPreemption).Info("Not triggering preemption: tryNodes calling checkPreemptionPredicates", zap.String("ApplicationID", p.application.ApplicationID), zap.Int("NodeCount", len(predicateChecks)), zap.String("predicateChecks", fmt.Sprintf("%v", predicateChecks)), zap.String("victimsByNode", fmt.Sprintf("%v", victimsByNode)))
 	result := p.checkPreemptionPredicates(predicateChecks, victimsByNode)
 	if result != nil && result.success {
 		return result.nodeID, result.victims, true
