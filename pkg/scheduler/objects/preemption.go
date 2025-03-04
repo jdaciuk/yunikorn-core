@@ -209,6 +209,11 @@ func (p *Preemptor) checkPreemptionQueueGuarantees() bool {
 // Result is a list of allocations and the starting index to check for the initial preemption list.
 // If the result is nil, the node should not be considered for preemption.
 func (p *Preemptor) calculateVictimsByNode(nodeAvailable *resources.Resource, potentialVictims []*Allocation) (int, []*Allocation) {
+	log.Log(log.SchedPreemption).Info("Not triggering preemption: calling calculateVictimsByNode",
+		zap.String("ApplicationID", p.application.ApplicationID),
+		zap.String("nodeAvailable", nodeAvailable.String()),
+		zap.String("potentialVictims", fmt.Sprintf("%v", potentialVictims)))
+
 	nodeCurrentAvailable := nodeAvailable.Clone()
 	allocationsByQueueSnap := p.duplicateQueueSnapshots()
 
@@ -491,6 +496,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 			allocations = make([]*Allocation, 0)
 		}
 		// identify which victims and in which order should be tried
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: tryNodes calling calculateVictimsByNode", zap.String("ApplicationID", p.application.ApplicationID), zap.String("NodeID", nodeID), zap.String("nodeAvailable", nodeAvailable.String()), zap.String("allocations", fmt.Sprintf("%v", allocations)))
 		if idx, victims := p.calculateVictimsByNode(nodeAvailable, allocations); victims != nil {
 			log.Log(log.SchedPreemption).Info("Not triggering preemption: tryNodes found potential victims", zap.String("ApplicationID", p.application.ApplicationID), zap.String("NodeID", nodeID), zap.Int("VictimCount", len(victims)))
 			victimsByNode[nodeID] = victims
