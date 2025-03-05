@@ -163,11 +163,12 @@ func (p *Preemptor) initWorkingState() {
 
 	// walk node iterator and track available resources per node
 	p.iterator.ForEachNode(func(node *Node) bool {
-		log.Log(log.SchedPreemption).Info("p.iterator.ForEachNode walking over node",
-			zap.String("ApplicationID", p.application.ApplicationID),
-			zap.String("NodeID", node.NodeID),
-		)
 		if !node.IsSchedulable() || (node.IsReserved() && !node.isReservedForApp(reservationKey(nil, p.application, p.ask))) {
+			log.Log(log.SchedPreemption).Info("p.iterator.ForEachNode skipping node",
+				zap.String("ApplicationID", p.application.ApplicationID),
+				zap.String("NodeID", node.NodeID),
+				zap.String("node.IsReserved", fmt.Sprintf("%v", node.IsReserved())),
+				zap.String("node.isReservedForApp", fmt.Sprintf("%v", node.isReservedForApp(reservationKey(nil, p.application, p.ask)))))
 			// node is not available, remove any potential victims from consideration
 			delete(allocationsByNode, node.NodeID)
 		} else {
