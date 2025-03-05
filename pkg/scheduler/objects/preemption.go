@@ -168,7 +168,9 @@ func (p *Preemptor) initWorkingState() {
 				zap.String("ApplicationID", p.application.ApplicationID),
 				zap.String("NodeID", node.NodeID),
 				zap.String("node.IsReserved", fmt.Sprintf("%v", node.IsReserved())),
+				zap.String("node.GetReservations", fmt.Sprintf("%v", node.GetReservations())),
 				zap.String("node.isReservedForApp", fmt.Sprintf("%v", node.isReservedForApp(reservationKey(nil, p.application, p.ask)))))
+
 			// node is not available, remove any potential victims from consideration
 			delete(allocationsByNode, node.NodeID)
 		} else {
