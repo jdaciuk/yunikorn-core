@@ -100,7 +100,7 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if ask has previously triggered preemption
 	if p.ask.HasTriggeredPreemption() {
-		return false
+		// return false
 	}
 
 	// skip if ask requires a specific node (this should be handled by required node preemption algorithm)
