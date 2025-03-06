@@ -347,6 +347,8 @@ func (p *Preemptor) duplicateQueueSnapshots() map[string]*QueuePreemptionSnapsho
 func (p *Preemptor) checkPreemptionPredicates(predicateChecks []*si.PreemptionPredicatesArgs, victimsByNode map[string][]*Allocation) *predicateCheckResult {
 	// don't process empty list
 	if len(predicateChecks) == 0 {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: checkPreemptionPredicates called with empty list",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return nil
 	}
 
@@ -412,6 +414,9 @@ func (p *Preemptor) checkPreemptionPredicates(predicateChecks []*si.PreemptionPr
 		}
 	}
 	bestResult.populateVictims(victimsByNode)
+	log.Log(log.SchedPreemption).Info("Not triggering preemption: checkPreemptionPredicates finished here",
+		zap.String("ApplicationID", p.application.ApplicationID),
+		zap.String("bestResult", fmt.Sprintf("%v", bestResult)))
 	return bestResult
 }
 
