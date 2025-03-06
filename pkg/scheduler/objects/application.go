@@ -941,6 +941,9 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 	if sa.sortedRequests == nil {
 		return nil
 	}
+	log.Log(log.SchedApplication).Info("mlp: tryAllocate called",
+		zap.String("appID", sa.ApplicationID),
+	)
 	// calculate the users' headroom, includes group check which requires the applicationID
 	userHeadroom := ugm.GetUserManager().Headroom(sa.queuePath, sa.ApplicationID, sa.user)
 	// get all the requests from the app sorted in order
@@ -1030,6 +1033,11 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 			}
 
 			// no nodes qualify, attempt preemption
+			log.Log(log.SchedApplication).Info("mlp: considering attempting preemption",
+				zap.String("appID", sa.ApplicationID),
+				zap.String("allowPreemption", fmt.Sprintf("%t", allowPreemption)),
+				zap.String("preemptAttemptsRemaining", fmt.Sprintf("%d", *preemptAttemptsRemaining)),
+			)
 			if allowPreemption && *preemptAttemptsRemaining > 0 {
 				*preemptAttemptsRemaining--
 				fullIterator := fullNodeIterator()
