@@ -166,6 +166,7 @@ func (p *Preemptor) initWorkingState() {
 		if !node.IsSchedulable() || (node.IsReserved() && !node.isReservedForApp(reservationKey(nil, p.application, p.ask))) {
 			log.Log(log.SchedPreemption).Info("p.iterator.ForEachNode skipping node",
 				zap.String("ApplicationID", p.application.ApplicationID),
+				zap.String("reservationKey of ApplicationID", reservationKey(nil, p.application, p.ask)),
 				zap.String("NodeID", node.NodeID),
 				zap.String("node.IsReserved", fmt.Sprintf("%v", node.IsReserved())),
 				zap.String("node.GetReservations", fmt.Sprintf("%v", node.GetReservations())),
