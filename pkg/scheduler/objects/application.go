@@ -1311,6 +1311,8 @@ func (sa *Application) tryPreemption(headRoom *resources.Resource, preemptionDel
 
 	// validate prerequisites for preemption of an ask and mark ask for preemption if successful
 	if !preemptor.CheckPreconditions() {
+		log.Log(log.SchedApplication).Info("mlp: not triggering preemption because !preemptor.CheckPreconditions()",
+			zap.String("appID", sa.ApplicationID))
 		return nil, false
 	}
 
