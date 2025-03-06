@@ -93,26 +93,36 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if ask is not allowed to preempt other tasks
 	if !p.ask.IsAllowPreemptOther() {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: ask is not allowed to preempt other tasks",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return false
 	}
 
 	// skip if ask has previously triggered preemption
 	if p.ask.HasTriggeredPreemption() {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: ask has previously triggered preemption",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return false
 	}
 
 	// skip if ask requires a specific node (this should be handled by required node preemption algorithm)
 	if p.ask.GetRequiredNode() != "" {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: ask requires a specific node",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return false
 	}
 
 	// skip if preemption delay has not yet passed
 	if now.Before(p.ask.GetCreateTime().Add(p.preemptionDelay)) {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: preemption delay has not yet passed",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return false
 	}
 
 	// skip if attempt frequency hasn't been reached again
 	if now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)) {
+		log.Log(log.SchedPreemption).Info("Not triggering preemption: attempt frequency hasn't been reached again",
+			zap.String("ApplicationID", p.application.ApplicationID))
 		return false
 	}
 
