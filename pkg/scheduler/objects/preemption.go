@@ -100,9 +100,9 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if ask has previously triggered preemption
 	if p.ask.HasTriggeredPreemption() {
-		log.Log(log.SchedPreemption).Info("Not triggering preemption: ask has previously triggered preemption",
+		log.Log(log.SchedPreemption).Info("mlp: ask has previously triggered preemption, but ignoring that",
 			zap.String("ApplicationID", p.application.ApplicationID))
-		return false
+		// return false
 	}
 
 	// skip if ask requires a specific node (this should be handled by required node preemption algorithm)
