@@ -88,6 +88,14 @@ func NewPreemptor(application *Application, headRoom *resources.Resource, preemp
 	}
 }
 
+func mlpPreemptionLog(p *Preemptor, msg string) {
+	log.Log(log.SchedPreemption).Info(msg,
+		zap.String("applicationID", p.ask.GetApplicationID()),
+		zap.String("allocationKey", p.ask.GetAllocationKey()),
+		zap.String("author", "MLP"),
+	)
+}
+
 // CheckPreconditions performs simple sanity checks designed to determine if preemption should be attempted
 // for an ask. If checks succeed, updates the ask preemption check time.
 func (p *Preemptor) CheckPreconditions() bool {
@@ -95,26 +103,31 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if ask is not allowed to preempt other tasks
 	if !p.ask.IsAllowPreemptOther() {
+		mlpPreemptionLog(p, "Hit CheckPreconditions() !p.ask.IsAllowPreemptOther()")
 		return false
 	}
 
 	// skip if ask has previously triggered preemption
 	if p.ask.HasTriggeredPreemption() {
+		mlpPreemptionLog(p, "Hit CheckPreconditions() p.ask.HasTriggeredPreemption()")
 		return false
 	}
 
 	// skip if ask requires a specific node (this should be handled by required node preemption algorithm)
 	if p.ask.GetRequiredNode() != "" {
+		mlpPreemptionLog(p, `Hit CheckPreconditions() p.ask.GetRequiredNode() != ""`)
 		return false
 	}
 
 	// skip if preemption delay has not yet passed
 	if now.Before(p.ask.GetCreateTime().Add(p.preemptionDelay)) {
+		mlpPreemptionLog(p, "Hit CheckPreconditions() now.Before(p.ask.GetCreateTime().Add(p.preemptionDelay))")
 		return false
 	}
 
 	// skip if attempt frequency hasn't been reached again
 	if now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)) {
+		mlpPreemptionLog(p, "Hit CheckPreconditions() now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency))")
 		return false
 	}
 
