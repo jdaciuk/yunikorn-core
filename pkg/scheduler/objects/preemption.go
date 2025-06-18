@@ -571,6 +571,7 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 func (p *Preemptor) TryPreemption() (*AllocationResult, bool) {
 	// validate that sufficient capacity can be freed
 	if !p.checkPreemptionQueueGuarantees() {
+		mlpPreemptionLog(p, "Hit TryPreemption() !p.checkPreemptionQueueGuarantees()")
 		p.ask.LogAllocationFailure(common.PreemptionDoesNotGuarantee, true)
 		return nil, false
 	}
@@ -581,6 +582,7 @@ func (p *Preemptor) TryPreemption() (*AllocationResult, bool) {
 	// try to find a node to schedule on and victims to preempt
 	nodeID, victims, ok := p.tryNodes()
 	if !ok {
+		mlpPreemptionLog(p, "p.tryNodes() returned no valid node or victims")
 		// no preemption possible
 		return nil, false
 	}
@@ -629,6 +631,7 @@ func (p *Preemptor) TryPreemption() (*AllocationResult, bool) {
 
 	if p.ask.GetAllocatedResource().StrictlyGreaterThanOnlyExisting(victimsTotalResource) {
 		// there is shortfall, so preemption doesn't help
+		mlpPreemptionLog(p, "there is shortfall, so preemption doesn't help")
 		p.ask.LogAllocationFailure(common.PreemptionShortfall, true)
 		return nil, false
 	}

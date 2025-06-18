@@ -1004,10 +1004,18 @@ func (sa *Application) canReplace(request *Allocation) bool {
 	return false
 }
 
+func mlpApplicationLog(sa *Application, msg string) {
+	log.Log(log.SchedApplication).Info(msg,
+		zap.String("applicationID", sa.ApplicationID),
+		zap.String("author", "MLP"),
+	)
+}
+
 // tryAllocate will perform a regular allocation of a pending request, includes placeholders.
 func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption bool, preemptionDelay time.Duration, preemptAttemptsRemaining *int, nodeIterator func() NodeIterator, fullNodeIterator func() NodeIterator, getNodeFn func(string) *Node) *AllocationResult {
 	sa.Lock()
 	defer sa.Unlock()
+	mlpApplicationLog(sa, "tryAllocate called")
 	if sa.sortedRequests == nil {
 		return nil
 	}
@@ -1069,6 +1077,7 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 		if iterator != nil {
 			if result := sa.tryNodes(request, iterator); result != nil {
 				// have a candidate return it
+				mlpApplicationLog(sa, fmt.Sprintf("tryAllocate found a candidate allocation: %s", result))
 				return result
 			}
 
