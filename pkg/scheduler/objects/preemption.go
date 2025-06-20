@@ -19,6 +19,7 @@
 package objects
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -127,8 +128,9 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if attempt frequency hasn't been reached again
 	if now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)) {
-		mlpPreemptionLog(p, "Hit CheckPreconditions() now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)), but returning true")
-		return true
+		mlpPreemptionLog(p, fmt.Sprintf("Hit CheckPreconditions() now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)) now: %s, preemptCheckTime: %s, preemptAttemptFrequency: %s",
+			now.Format(time.RFC3339), p.ask.GetPreemptCheckTime().Format(time.RFC3339), preemptAttemptFrequency.String()))
+		return false
 	}
 
 	// mark this ask as having been checked recently to avoid doing extra work in the next scheduling cycle
