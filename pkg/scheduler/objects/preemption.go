@@ -127,8 +127,8 @@ func (p *Preemptor) CheckPreconditions() bool {
 
 	// skip if attempt frequency hasn't been reached again
 	if now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)) {
-		mlpPreemptionLog(p, "Hit CheckPreconditions() now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency))")
-		return false
+		mlpPreemptionLog(p, "Hit CheckPreconditions() now.Before(p.ask.GetPreemptCheckTime().Add(preemptAttemptFrequency)), but returning true")
+		return true
 	}
 
 	// mark this ask as having been checked recently to avoid doing extra work in the next scheduling cycle
