@@ -1021,19 +1021,24 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 	}
 	// calculate the users' headroom, includes group check which requires the applicationID
 	userHeadroom := ugm.GetUserManager().Headroom(sa.queuePath, sa.ApplicationID, sa.user)
+	mlpApplicationLog(sa, fmt.Sprintf("user headroom: %s", userHeadroom))
 	// get all the requests from the app sorted in order
 	for _, request := range sa.sortedRequests {
+		mlpApplicationLog(sa, fmt.Sprintf("tryAllocate processing request: %s", request))
 		if request.IsAllocated() {
+			mlpApplicationLog(sa, fmt.Sprintf("request %s is already allocated, skipping", request))
 			continue
 		}
 		// check if there is a replacement possible
 		if sa.canReplace(request) {
+			mlpApplicationLog(sa, fmt.Sprintf("request %s can be replaced by a placeholder, skipping", request))
 			continue
 		}
 		// check if this fits in the users' headroom first, if that fits check the queues' headroom
 		// NOTE: preemption most likely will not help in this case. The chance that preemption helps is mall
 		// as the preempted allocation must be for the same user in a different queue in the hierarchy...
 		if !userHeadroom.FitInMaxUndef(request.GetAllocatedResource()) {
+			mlpApplicationLog(sa, fmt.Sprint("request does not fit in user headroom, skipping: ", request))
 			request.LogAllocationFailure(NotEnoughUserQuota, true) // error message MUST be constant!
 			request.setUserQuotaCheckFailed(userHeadroom)
 			continue
@@ -1043,6 +1048,7 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 
 		// resource must fit in headroom otherwise skip the request (unless preemption could help)
 		if !headRoom.FitInMaxUndef(request.GetAllocatedResource()) {
+			mlpApplicationLog(sa, "if !headRoom.FitInMaxUndef(request.GetAllocatedResource())")
 			// attempt preemption
 			if allowPreemption && *preemptAttemptsRemaining > 0 {
 				*preemptAttemptsRemaining--
@@ -1064,6 +1070,7 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 		requiredNode := request.GetRequiredNode()
 		// does request have any constraint to run on specific node?
 		if requiredNode != "" {
+			mlpApplicationLog(sa, "if requiredNode !=")
 			result := sa.tryRequiredNode(request, getNodeFn)
 			if result != nil {
 				return result
@@ -1074,18 +1081,23 @@ func (sa *Application) tryAllocate(headRoom *resources.Resource, allowPreemption
 		}
 
 		iterator := nodeIterator()
+		if iterator == nil {
+			mlpApplicationLog(sa, "nodeIterator is nil, skipping request")
+		}
 		if iterator != nil {
 			if result := sa.tryNodes(request, iterator); result != nil {
 				// have a candidate return it
 				mlpApplicationLog(sa, fmt.Sprintf("tryAllocate found a candidate allocation: %s", result))
 				return result
 			}
-
+			mlpApplicationLog(sa, fmt.Sprintf("tryAllocate did not find a candidate allocation in the node iterator, allowPreemption: %s, preemptAttemptsRemaining: %d",
+				strconv.FormatBool(allowPreemption), *preemptAttemptsRemaining))
 			// no nodes qualify, attempt preemption
 			if allowPreemption && *preemptAttemptsRemaining > 0 {
 				*preemptAttemptsRemaining--
 				fullIterator := fullNodeIterator()
 				if fullIterator != nil {
+					mlpApplicationLog(sa, "tryAllocate calling sa.tryPreemption")
 					if result, ok := sa.tryPreemption(headRoom, preemptionDelay, request, fullIterator, true); ok {
 						// preemption occurred, and possibly reservation
 						return result
