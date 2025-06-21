@@ -539,13 +539,17 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 	predicateChecks := make([]*si.PreemptionPredicatesArgs, 0)
 	victimsByNode := make(map[string][]*Allocation)
 	for nodeID, nodeAvailable := range p.nodeAvailableMap {
+		mlpPreemptionLog(p, fmt.Sprintf("considering node: %s, nodeAvailable: %s", nodeID, nodeAvailable.String()))
 		allocations, ok := p.allocationsByNode[nodeID]
+		mlpPreemptionLog(p, fmt.Sprintf("node: %s, allocations: %d", nodeID, len(allocations)))
 		if !ok {
+			mlpPreemptionLog(p, fmt.Sprintf("node: %s, no allocations found", nodeID))
 			// no allocations present, but node may still be available for scheduling
 			allocations = make([]*Allocation, 0)
 		}
 		// identify which victims and in which order should be tried
 		if idx, victims := p.calculateVictimsByNode(nodeAvailable, allocations); victims != nil {
+			mlpPreemptionLog(p, fmt.Sprintf("node: %s, victims: %d, startIndex: %d", nodeID, len(victims), idx))
 			victimsByNode[nodeID] = victims
 			keys := make([]string, 0)
 			for _, victim := range victims {
@@ -553,20 +557,24 @@ func (p *Preemptor) tryNodes() (string, []*Allocation, bool) {
 			}
 			// only check this node if there are victims or we have not already tried scheduling
 			if len(victims) > 0 || !p.nodesTried {
+				mlpPreemptionLog(p, "hit if len(victims) > 0 || !p.nodesTried")
 				predicateChecks = append(predicateChecks, &si.PreemptionPredicatesArgs{
 					AllocationKey:         p.ask.GetAllocationKey(),
 					NodeID:                nodeID,
 					PreemptAllocationKeys: keys,
 					StartIndex:            int32(idx), //nolint: gosec
 				})
+				mlpPreemptionLog(p, fmt.Sprintf("Added preemption check %s", predicateChecks[len(predicateChecks)-1].String()))
 			}
 		}
 	}
 	// call predicates to evaluate each node
 	result := p.checkPreemptionPredicates(predicateChecks, victimsByNode)
+	mlpPreemptionLog(p, fmt.Sprintf("checkPreemptionPredicates returned: %s", result))
 	if result != nil && result.success {
 		return result.nodeID, result.victims, true
 	}
+	mlpPreemptionLog(p, "checkPreemptionPredicates returned no valid node or victims")
 	return "", nil, false
 }
 
