@@ -179,6 +179,10 @@ func (p *Preemptor) initWorkingState() {
 	p.iterator.ForEachNode(func(node *Node) bool {
 		if !node.IsSchedulable() || (node.IsReserved() && !node.isReservedForAllocation(p.ask.GetAllocationKey())) || !node.FitInNode(p.ask.GetAllocatedResource()) {
 			// node is not available, remove any potential victims from consideration
+			mlpPreemptionLog(p,
+				fmt.Sprintf("Removing node %s from consideration. node.IsReserved: %v, node reservations: %v, node fits ask: %v",
+					node.NodeID, node.IsReserved(), node.reservations, node.FitInNode(p.ask.GetAllocatedResource())),
+			)
 			delete(allocationsByNode, node.NodeID)
 		} else {
 			// track allocated and available resources

@@ -557,6 +557,13 @@ func (sn *Node) Reserve(app *Application, ask *Allocation) error {
 	}
 	sn.reservations[ask.allocationKey] = appReservation
 	sn.nodeEvents.SendReservedEvent(sn.NodeID, ask.GetAllocatedResource(), ask.GetAllocationKey())
+	log.Log(log.SchedNode).Info("MLP node reservation added",
+		zap.String("nodeID", sn.NodeID),
+		zap.String("appID", app.ApplicationID),
+		zap.String("alloc", ask.GetAllocationKey()),
+		zap.Stringer("requested resources", ask.GetAllocatedResource()),
+		zap.Bool("requiredNode", reqNode))
+	// notify listeners that the node has been reserved
 	// reservation added successfully
 	return nil
 }
